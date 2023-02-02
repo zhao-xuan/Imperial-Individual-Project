@@ -22,7 +22,7 @@ def load_itk(filename):
     # Reads the image using SimpleITK
     itkimage = sitk.ReadImage(filename)
 
-    # Convert the image to a  numpy array first and then shuffle the dimensions to get axis in the order z,y,x
+    # Convert the image to a numpy array first and then shuffle the dimensions to get axis in the order z,y,x
     image_array = sitk.GetArrayFromImage(itkimage)
 
     # Read the origin of the ct_scan, will be used to convert the coordinates from world to voxel and vice versa.
@@ -37,11 +37,11 @@ luna_subset_path = './data/LUNA16/images/'
 file_list=glob(luna_subset_path+"*.mhd")
 
 img, origin, spacing = load_itk(file_list[0])
-# first_patient_pixels = img
-# plt.hist(first_patient_pixels.flatten(), bins=80, color='c')
-# plt.xlabel("Hounsfield Units (HU)")
-# plt.ylabel("Frequency")
-# plt.show()
+first_patient_pixels = img
+plt.hist(first_patient_pixels.flatten(), bins=80, color='c')
+plt.xlabel("Hounsfield Units (HU)")
+plt.ylabel("Frequency")
+plt.show()
 
 def resample(image, previous_spacing, new_spacing=[1,1,1]):
     # Determine current pixel spacing
