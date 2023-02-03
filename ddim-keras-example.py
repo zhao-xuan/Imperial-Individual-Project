@@ -1,16 +1,22 @@
+# %% [markdown]
+# ## Keras DDIM Example using Oxford Flowers Dataset
+
+# %%
 import math
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
+import luna16_roi  # Register `my_dataset`
 
 from tensorflow import keras
 from keras import layers
 
+# %%
 # data
-dataset_name = "oxford_flowers102"
+dataset_name = "luna16_roi" # "oxford_flowers102"
 dataset_repetitions = 5
-num_epochs = 50  # train for at least 50 epochs for good results
-image_size = 64
+num_epochs = 2  # train for at least 50 epochs for good results
+image_size = 512
 # KID = Kernel Inception Distance, see related section
 kid_image_size = 75
 kid_diffusion_steps = 5
@@ -32,6 +38,7 @@ ema = 0.999
 learning_rate = 1e-3
 weight_decay = 1e-4
 
+# %%
 def preprocess_image(data):
     # center crop image
     height = tf.shape(data["image"])[0]
@@ -50,10 +57,11 @@ def preprocess_image(data):
     image = tf.image.resize(image, size=[image_size, image_size], antialias=True)
     return tf.clip_by_value(image / 255.0, 0.0, 1.0)
 
-
+# %%
 def prepare_dataset(split):
     # the validation dataset is shuffled as well, because data order matters
     # for the KID estimation
+
     return (
         tfds.load(dataset_name, split=split, shuffle_files=True)
         .map(preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
@@ -64,11 +72,12 @@ def prepare_dataset(split):
         .prefetch(buffer_size=tf.data.AUTOTUNE)
     )
 
-
+# %%
 # load dataset
-train_dataset = prepare_dataset("train[:80%]+validation[:80%]+test[:80%]")
-val_dataset = prepare_dataset("train[80%:]+validation[80%:]+test[80%:]")
+train_dataset = prepare_dataset("train[:80%]+test[:80%]")
+val_dataset = prepare_dataset("train[80%:]+test[80%:]")
 
+# %%
 class KID(keras.metrics.Metric):
     def __init__(self, name, **kwargs):
         super().__init__(name=name, **kwargs)
@@ -131,6 +140,7 @@ class KID(keras.metrics.Metric):
     def reset_state(self):
         self.kid_tracker.reset_state()
 
+# %%
 def sinusoidal_embedding(x):
     embedding_min_frequency = 1.0
     frequencies = tf.exp(
@@ -146,7 +156,7 @@ def sinusoidal_embedding(x):
     )
     return embeddings
 
-
+# %%
 def ResidualBlock(width):
     def apply(x):
         input_width = x.shape[3]
@@ -163,7 +173,6 @@ def ResidualBlock(width):
         return x
 
     return apply
-
 
 def DownBlock(width, block_depth):
     def apply(x):
@@ -188,7 +197,7 @@ def UpBlock(width, block_depth):
 
     return apply
 
-
+# %%
 def get_network(image_size, widths, block_depth):
     noisy_images = keras.Input(shape=(image_size, image_size, 3))
     noise_variances = keras.Input(shape=(1, 1, 1))
@@ -213,6 +222,10 @@ def get_network(image_size, widths, block_depth):
 
     return keras.Model([noisy_images, noise_variances], x, name="residual_unet")
 
+# %% [markdown]
+# #### Below is the definition of the DDIM model
+
+# %%
 class DiffusionModel(keras.Model):
     def __init__(self, image_size, widths, block_depth):
         super().__init__()
@@ -390,15 +403,13 @@ class DiffusionModel(keras.Model):
         # plt.show()
         plt.savefig(f'./imgs/{epoch}.jpg')
 
+# %%
 # create and compile the model
 model = DiffusionModel(image_size, widths, block_depth)
-# below tensorflow 2.9:
-# pip install tensorflow_addons
-# import tensorflow_addons as tfa
-# optimizer=tfa.optimizers.AdamW
+
 model.compile(
-    optimizer=keras.optimizers.experimental.AdamW(
-        learning_rate=learning_rate, weight_decay=weight_decay
+    optimizer=keras.optimizers.Adam(
+        learning_rate=learning_rate
     ),
     loss=keras.losses.mean_absolute_error,
 )
@@ -413,6 +424,8 @@ checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     mode="min",
     save_best_only=True,
 )
+
+print(train_dataset)
 
 # calculate mean and variance of training dataset for normalization
 model.normalizer.adapt(train_dataset)
@@ -431,3 +444,5 @@ model.fit(
 # load the best model and generate images
 model.load_weights(checkpoint_path)
 model.plot_images(epoch='best')
+
+
