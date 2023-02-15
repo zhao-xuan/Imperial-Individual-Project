@@ -7,6 +7,7 @@ __pycache__/
 **/.DS_Store
 data/
 checkpoints/
+processed_data_raw/
 
 # C extensions
 *.so
