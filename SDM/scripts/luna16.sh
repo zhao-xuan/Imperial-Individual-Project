@@ -2,7 +2,7 @@
 
 export CUDA_VISIBLE_DEVICES=0 # CHANGE ME
 
-DATA_DIR=../luna-16-seg-diff-data
+DATA_DIR=../../luna-16-seg-diff-data
 
 # Training
 # export OPENAI_LOGDIR='OUTPUT/LUNA'

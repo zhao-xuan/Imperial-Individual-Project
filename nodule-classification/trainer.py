@@ -114,6 +114,7 @@ class Trainer:
         start_t = time.time()
         for epoch in range(self.n_epochs):
             self.train_epoch(epoch)
+        T.save(self.model, './results/model.pt')
         diff = time.time() - start_t
         print(f'took {diff} seconds')
         with open(path.join('results',f'{self.name}.txt'),'w') as f:

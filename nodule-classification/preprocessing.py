@@ -102,7 +102,10 @@ def get_dataset(dir):
     for i, row in df_test.iterrows():
         id = int(row.id)
         for j in range(aug_size):
-            im = imread(path.join(dir, f'{id:.0f}.{j}.png'))
+            p = path.join(dir, f'{id:.0f}.{j}.png')
+            # "../../lidc_img/0/481.0.png" doesn't open
+            # print("path:", p)
+            im = imread(p)
             x[c * aug_size + j, 0, :, :] = t.from_numpy(im)
             y[c * aug_size + j][0] = row.malignancy_th
         c += 1
