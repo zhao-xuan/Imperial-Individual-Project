@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="benjamin@himadesktop" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="benjamin@himadesktop">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/mnt/nas_houbb/users/Benjamin/PyCharm_Deployment/NoduleGAN" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>
