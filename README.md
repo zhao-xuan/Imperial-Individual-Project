@@ -33,10 +33,10 @@ Lung cancer has been one of the leading causes of cancer-related deaths worldwid
 │   ├── run_pipeline.py: for generating healthy synthetic GAN scans.
 │   └── eval_gaugan.py: for generating nodule synthetic GAN scans.
 │
-├── mmclassification: modified version of [mmclassification](https://github.com/open-mmlab/mmpretrain) (Now re-named to mmpretrain)
+├── mmclassification: modified version of <a href="https://github.com/open-mmlab/mmpretrain">mmclassification</a> (Now re-named to mmpretrain)
 │   └── configs
 │       └── new_config.py: custom config file, required to train classification model.
-└── mmdetection: modified version of [mmclassification](https://github.com/open-mmlab/mmdetection)
+└── mmdetection: modified version of <a href="https://github.com/open-mmlab/mmdetection">mmclassification</a>
     └── configs
         └── *.py: all custom config files, required to train detection model.
 </pre>
