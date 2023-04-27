@@ -59,9 +59,9 @@ def load_data(
         classes = _list_image_files_recursively(os.path.join(data_dir, 'train' if is_train else 'test', 'labels'))
         instances = _list_image_files_recursively(os.path.join(data_dir, 'train' if is_train else 'test', 'labels'))
     elif dataset_mode == 'LUNA16':
-        all_files = _list_image_files_recursively(os.path.join(data_dir, 'images'))[186:]
+        all_files = _list_image_files_recursively(os.path.join(data_dir, 'prior_nodule_images'))
         # classes = _list_image_files_recursively(os.path.join(data_dir, 'processed_data_raw', 'area_image'))
-        classes = _list_image_files_recursively(os.path.join(data_dir, 'labels_ohe'))[186:]
+        classes = _list_image_files_recursively(os.path.join(data_dir, 'prior_nodule_labels_ohe'))
         instances = None
     else:
         raise NotImplementedError('{} not implemented'.format(dataset_mode))
