@@ -8,6 +8,7 @@ __pycache__/
 data/
 checkpoints/
 processed_data_raw/
+improved_diff_models/
 
 # C extensions
 *.so

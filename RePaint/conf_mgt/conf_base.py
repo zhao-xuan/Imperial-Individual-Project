@@ -25,10 +25,10 @@ from os.path import isfile, expanduser
 def to_file_ext(img_names, ext):
     img_names_out = []
     for img_name in img_names:
-        splits = img_name.split('.')
-        if not len(splits) == 2:
-            raise RuntimeError("File name needs exactly one '.':", img_name)
-        img_names_out.append(splits[0] + '.' + ext)
+        # splits = img_name.split('.')
+        # if not len(splits) == 2:
+        #     raise RuntimeError("File name needs exactly one '.':", img_name)
+        img_names_out.append(img_name + '.' + ext)
 
     return img_names_out
 
