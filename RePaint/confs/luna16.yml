@@ -68,7 +68,7 @@ data:
     paper_face_mask:
       mask_loader: true
       gt_path: /home/user/luna-16-seg-diff-data/only_nodule_images/
-      mask_path: /home/user/luna-16-seg-diff-data/only_nodule_labels_ohe/
+      mask_path: /home/user/luna-16-seg-diff-data/only_nodule_labels_ohe/converted
       image_size: 256
       class_cond: false
       deterministic: true
@@ -79,7 +79,7 @@ data:
       batch_size: 1
       return_dataloader: true
       offset: 0
-      max_len: 8
+      max_len: 1150
       paths:
         srs: ./log/face_example/inpainted
         lrs: ./log/face_example/gt_masked
