@@ -72,7 +72,7 @@ def evaluate_lpips(
             'psnr': [],
         }
         for batch in tqdm(val_loader, desc='lpips'):
-            imgs, lesion_free = batch
+            imgs, lesion_free, idx = batch
             imgs = imgs.to(device)
 
             if use_inverted_noise:
@@ -89,7 +89,7 @@ def evaluate_lpips(
                     model_kwargs=model_kwargs)
                 x_T = x_T['sample']
             else:
-                x_T = torch.randn((len(imgs), 3, conf.img_size, conf.img_size),
+                x_T = torch.randn((len(imgs), 1, conf.img_size, conf.img_size),
                                   device=device)
 
             if conf.model_type == ModelType.ddpm:
@@ -223,7 +223,7 @@ def evaluate_fid(
             for i in trange(0, eval_num_images, batch_size, desc=desc):
                 batch_size = min(batch_size, eval_num_images - i)
                 x_T = torch.randn(
-                    (batch_size, 3, conf.img_size, conf.img_size),
+                    (batch_size, 1, conf.img_size, conf.img_size),
                     device=device)
                 batch_images = render_uncondition(
                     conf=conf,
@@ -251,7 +251,7 @@ def evaluate_fid(
                 for i in trange(0, eval_num_images, batch_size, desc=desc):
                     batch_size = min(batch_size, eval_num_images - i)
                     x_T = torch.randn(
-                        (batch_size, 3, conf.img_size, conf.img_size),
+                        (batch_size, 1, conf.img_size, conf.img_size),
                         device=device)
                     batch_images = render_uncondition(
                         conf=conf,
@@ -282,10 +282,10 @@ def evaluate_fid(
 
                 i = 0
                 for batch in tqdm(train_loader, desc='generating images'):
-                    imgs, lesion_free = batch
+                    imgs, lesion_free, idx = batch
                     imgs = imgs.to(device)
                     x_T = torch.randn(
-                        (len(imgs), 3, conf.img_size, conf.img_size),
+                        (len(imgs), 1, conf.img_size, conf.img_size),
                         device=device)
                     batch_images = render_condition(
                         conf=conf,
@@ -352,7 +352,7 @@ def loader_to_path(loader: DataLoader, path: str, denormalize: bool):
     # write the loader to files
     i = 0
     for batch in tqdm(loader, desc='copy images'):
-        imgs, lesion_free = batch
+        imgs, lesion_free, idx = batch
         if denormalize:
             imgs = (imgs + 1) / 2
         for j in range(len(imgs)):

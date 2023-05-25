@@ -28,8 +28,8 @@ class Luna16Dataset(Dataset):
     lesion_image = Image.open(os.path.join(self.lesion_path, filename))
     lesion_free_image = Image.open(os.path.join(self.lesion_free_path, filename))
     
-    lesion_image = lesion_image.convert('RGB')
-    lesion_free_image = lesion_free_image.convert('RGB')
+    lesion_image = lesion_image.convert('L')
+    lesion_free_image = lesion_free_image.convert('L')
     
     # weight_map = Image.open(os.path.join(self.weight_map_path, filename[:-4]))
     # weight_map = weight_map.resize((256, 256))
@@ -42,7 +42,7 @@ class Luna16Dataset(Dataset):
     # Create a new image from the converted array
     # converted_image = Image.fromarray(converted_array.astype(np.uint8))
     
-    return transforms.ToTensor()(lesion_image), transforms.ToTensor()(lesion_free_image)
+    return transforms.ToTensor()(lesion_image), transforms.ToTensor()(lesion_free_image), idx
 
 
 class ImageDataset(Dataset):

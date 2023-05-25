@@ -11,6 +11,9 @@ processed_data_raw/
 improved_diff_models/
 RePaint/log/
 VQVAE/checkpoints_healthy/
+diffae/checkpoints_3channels/
+diffae/evals/
+diffae/evals_3channels/
 
 # C extensions
 *.so

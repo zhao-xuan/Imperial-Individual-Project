@@ -53,7 +53,7 @@ def autoenc_base():
     conf.net_enc_channel_mult = (1, 2, 4, 8, 8)
     conf.net_enc_pool = 'adaptivenonzero'
     conf.sample_size = 2
-    conf.T_eval = 20
+    conf.T_eval = 1000
     conf.T = 1000
     conf.make_model_conf()
     return conf

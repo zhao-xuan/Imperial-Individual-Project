@@ -64,7 +64,7 @@ class LitModel(pl.LightningModule):
         # initial variables for consistent sampling
         self.register_buffer(
             'x_T',
-            torch.randn(conf.sample_size, 3, conf.img_size, conf.img_size))
+            torch.randn(conf.sample_size, 1, conf.img_size, conf.img_size))
 
         if conf.pretrain is not None:
             print(f'loading pretrain ... {conf.pretrain.name}')
@@ -101,7 +101,7 @@ class LitModel(pl.LightningModule):
             latent_sampler = self.conf._make_latent_diffusion_conf(T_latent).make_sampler()
 
         noise = torch.randn(N,
-                            3,
+                            1,
                             self.conf.img_size,
                             self.conf.img_size,
                             device=device)
@@ -304,20 +304,19 @@ class LitModel(pl.LightningModule):
                 with torch.no_grad():
                     # (n, c)
                     # print('idx:', batch['index'])
-                    img, lesion_free = batch
+                    img, lesion_free, idx = batch
                     img = img.to(self.device)
                     cond = model.encoder(img)
 
                     # used for reordering to match the original dataset
-                    # idx = batch['index']
-                    # idx = self.all_gather(idx)
-                    # if idx.dim() == 2:
-                    #     idx = idx.flatten(0, 1)
-                    # argsort = idx.argsort()
+                    idx = self.all_gather(idx)
+                    if idx.dim() == 2:
+                        idx = idx.flatten(0, 1)
+                    argsort = idx.argsort()
 
                     if with_render:
                         noise = torch.randn(len(cond),
-                                            3,
+                                            1,
                                             self.conf.img_size,
                                             self.conf.img_size,
                                             device=self.device)
@@ -333,7 +332,7 @@ class LitModel(pl.LightningModule):
                         # print('global_rank:', self.global_rank)
 
                         if self.global_rank == 0:
-                            writer.put_images(render)
+                            writer.put_images(render[argsort])
 
                     # (k, n, c)
                     cond = self.all_gather(cond)
@@ -342,7 +341,7 @@ class LitModel(pl.LightningModule):
                         # (k*n, c)
                         cond = cond.flatten(0, 1)
 
-                    conds.append(cond.cpu())
+                    conds.append(cond[argsort].cpu())
                 # break
         model.train()
         # (N, c) cpu
@@ -365,7 +364,7 @@ class LitModel(pl.LightningModule):
                     cond = (cond - self.conds_mean.to(
                         self.device)) / self.conds_std.to(self.device)
             else:
-                imgs, idxs = batch
+                imgs, lesion_free, idxs = batch
                 # print(f'(rank {self.global_rank}) batch size:', len(imgs))
                 x_start = imgs
 
@@ -429,7 +428,7 @@ class LitModel(pl.LightningModule):
             if self.conf.train_mode.require_dataset_infer():
                 imgs = None
             else:
-                imgs, lesion_free = batch
+                imgs, lesion_free, idx = batch
             self.log_sample(x_start=imgs)
             self.evaluate_scores()
 
