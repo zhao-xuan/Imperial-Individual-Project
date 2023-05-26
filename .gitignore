@@ -12,6 +12,7 @@ improved_diff_models/
 RePaint/log/
 VQVAE/checkpoints_healthy/
 diffae/checkpoints_3channels/
+diffae/checkpoints_unhealthy/
 diffae/evals/
 diffae/evals_3channels/
 
