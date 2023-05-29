@@ -15,6 +15,7 @@ diffae/checkpoints_3channels/
 diffae/checkpoints_unhealthy/
 diffae/evals/
 diffae/evals_3channels/
+diffae/evals_unhealthy
 
 # C extensions
 *.so

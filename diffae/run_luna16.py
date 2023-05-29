@@ -6,7 +6,7 @@ if __name__ == '__main__':
     # this can be run on 2080Ti's.
     gpus = [0]
     conf = luna16_autoenc()
-    # train(conf, gpus=gpus)
+    train(conf, gpus=gpus)
 
     # infer the latents for training the latent DPM
     # NOTE: not gpu heavy, but more gpus can be of use!

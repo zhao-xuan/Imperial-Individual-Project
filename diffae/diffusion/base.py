@@ -102,7 +102,8 @@ class GaussianDiffusionBeatGans:
                         x_start: th.Tensor,
                         t: th.Tensor,
                         model_kwargs=None,
-                        noise: th.Tensor = None):
+                        noise: th.Tensor = None,
+                        lesion_free=None):
         """
         Compute training losses for a single timestep.
 
@@ -120,7 +121,7 @@ class GaussianDiffusionBeatGans:
         if noise is None:
             noise = th.randn_like(x_start)
 
-        x_t = self.q_sample(x_start, t, noise=noise)
+        x_t = self.q_sample(lesion_free, t, noise=noise)
 
         terms = {'x_t': x_t}
 

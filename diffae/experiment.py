@@ -376,7 +376,8 @@ class LitModel(pl.LightningModule):
                 t, weight = self.T_sampler.sample(len(x_start), x_start.device)
                 losses = self.sampler.training_losses(model=self.model,
                                                       x_start=x_start,
-                                                      t=t)
+                                                      t=t,
+                                                      lesion_free=lesion_free)
             elif self.conf.train_mode.is_latent_diffusion():
                 """
                 training the latent variables!
