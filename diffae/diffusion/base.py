@@ -133,7 +133,7 @@ class GaussianDiffusionBeatGans:
                 # x_t is static wrt. to the diffusion process
                 model_forward = model.forward(x=x_t.detach(),
                                               t=self._scale_timesteps(t),
-                                              x_start=x_start.detach(),
+                                              x_start=lesion_free.detach(),
                                               **model_kwargs)
             model_output = model_forward.pred
 
