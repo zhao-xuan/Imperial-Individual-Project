@@ -36,9 +36,10 @@ Lung cancer has been one of the leading causes of cancer-related deaths worldwid
 ├── mmclassification: modified version of <a href="https://github.com/open-mmlab/mmpretrain">mmclassification</a> (Now re-named to mmpretrain)
 │   └── configs
 │       └── new_config.py: custom config file, required to train classification model.
-└── mmdetection: modified version of <a href="https://github.com/open-mmlab/mmdetection">mmclassification</a>
-    └── configs
-        └── *.py: all custom config files, required to train detection model.
+├── mmdetection: modified version of <a href="https://github.com/open-mmlab/mmdetection">mmclassification</a>
+│   └── configs
+│       └── *.py: all custom config files, required to train detection model.
+└── experiments: containing all relevant files and scripts to run experiments/training and inferences on mmclassification and mmdetection downstream tasks. See README.md in this folder for more details.
 </pre>
 
 ### References
