@@ -1,0 +1,198 @@
+From 3f231402d5ae3bd053a0e77f941259d9bb24a144 Mon Sep 17 00:00:00 2001
+From: Tom Zhao <zhaoxuan0914@hotmail.com>
+Date: Tue, 28 Mar 2023 23:23:04 +0100
+Subject: [PATCH 2/2] update 2
+
+---
+ .gitignore       |  1 +
+ experiments.py   |  2 +-
+ kflod.py         | 10 ++++-----
+ preprocessing.py | 58 ++++++++++++++++++++++++++++++------------------
+ trainer.py       | 16 ++++++++++---
+ 5 files changed, 56 insertions(+), 31 deletions(-)
+
+diff --git a/.gitignore b/.gitignore
+index 2b42731..1be9177 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,2 +1,3 @@
+ __pycache__/
+ results/
++data/
+diff --git a/experiments.py b/experiments.py
+index 8a78602..440e95c 100644
+--- a/experiments.py
++++ b/experiments.py
+@@ -66,7 +66,7 @@ def expLocalGlobal(data_path):
+ 
+     kfold(data_path,
+           256,
+-          50,
++          70,
+           model_optimizer=model_opt,
+           loss=nn.BCELoss(),
+           name='LocalGlobalNetwork',
+diff --git a/kflod.py b/kflod.py
+index 36a43a0..84028ca 100644
+--- a/kflod.py
++++ b/kflod.py
+@@ -39,8 +39,8 @@ def kfold(src_path,
+           dataset_func=get_dataset):
+ 
+     print(f'Experiment {name}')
+-    all_pred = T.zeros(849)
+-    all_targets = T.zeros(849)
++    all_pred = T.zeros(2000)
++    all_targets = T.zeros(2000)
+     i =0
+     f = open(path.join('results', f'{name}.txt'), 'w')
+     f.write(f'{batch_size} {n_epochs} {model_optimizer}\n')
+@@ -83,10 +83,10 @@ def kfold(src_path,
+         del tr
+ 
+ 
+-    matches = calc_accuracy(all_pred, all_targets)
++    matches = calc_accuracy(all_pred[:i], all_targets[:i])
+     acc = matches.float().mean()
+-    all_pred = all_pred.numpy()
+-    all_targets = all_targets.numpy()
++    all_pred = all_pred[:i].numpy()
++    all_targets = all_targets[:i].numpy()
+ 
+     prec, recall, auc = get_metrics(all_targets, all_pred)
+     print(f'accuray: {acc}, AUC: {auc}, precession: {prec}, Recall: {recall}')
+diff --git a/preprocessing.py b/preprocessing.py
+index 6bc2690..754c555 100644
+--- a/preprocessing.py
++++ b/preprocessing.py
+@@ -72,14 +72,33 @@ def generate_dataset(dir):
+                 im2.save('{0}{1:.0f}.{2}.png'.format(folder, row.id, e))
+ 
+ def get_dataset(dir):
+-    df = pd.read_csv(path.join(dir, 'labels.csv'))
++    df = pd.read_csv(path.join(dir, 'labels_all.csv'))
+     # df_test = df[df.testing==1]
+     # df_train = df[df.testing == 0]
+-    l = len(df)
+-    
+-    df_train = df.iloc[:int(l * 0.8)]
+-    df_test = df.iloc[int(l * 0.8):]
++
++    use_generated_nodules = False
++
++    nr_nodules_dataset = sum((df.is_nodule == 1) & (df.is_generated == 0))
++    nr_nodules_generated = sum((df.is_nodule == 1) & (df.is_generated == 1))
++    print("number of nodules in the dataset:", nr_nodules_dataset)
++    print("number of generated nodules:", nr_nodules_generated)
++    l = nr_nodules_dataset
++
++    df_nodule = df[(df.is_nodule == 1) & (df.is_generated == 0)][:l]
++    df_non_nodule = df[(df.is_nodule == 0) & (df.is_generated == 0)][:l]
++
++    df_train = pd.concat([df_nodule.iloc[:int(l * 0.8)], df_non_nodule.iloc[:int(l * 0.8)]])
++    df_test = pd.concat([df_nodule.iloc[int(l * 0.8):], df_non_nodule.iloc[int(l * 0.8):]])
++
++    df_generated_nodule = df[(df.is_nodule == 1) & (df.is_generated == 1)]
++
++    if use_generated_nodules:
++        df_train = pd.concat([df_train, df_generated_nodule, df_non_nodule.sample(len(df_generated_nodule), random_state=42)])
++        # df_train = df_train.sample(len(df_train), random_state=42)
+     
++    df_train = df_train.sample(len(df_train), random_state=42)
++    df_test = df_test.sample(len(df_test), random_state=42)
++
+     print("df_train len =", len(df_train))
+     print("df_test len =", len(df_test))
+ 
+@@ -90,10 +109,8 @@ def get_dataset(dir):
+     c = 0
+     for i, row in df_train.iterrows():
+         # id = int(row.id)
+-        print(row.coord_x)
+-        break
+-        filename = f"{row.filename}_{row.coord_x}_{row.coord_y}.png"
+-        
++        # filename = f"{row.filename}_{row.coord_x}_{row.coord_y}.png"
++        filename = row.filename
+         for j in range(aug_size):
+             # im = imread(path.join(dir,f'{id:.0f}.{j}.png'))
+             im = imread(path.join(dir, filename))
+@@ -114,19 +131,16 @@ def get_dataset(dir):
+     c = 0
+     for i, row in df_test.iterrows():
+         # id = int(row.id)
+-        filename = f"{row.filename}_{row.coord_x}_{row.coord_y}.png"
+-        try:
+-            for j in range(aug_size):
+-                # im = imread(path.join(dir, f'{id:.0f}.{j}.png'))
+-                im = imread(path.join(dir, filename))
+-                
+-                x[c * aug_size + j, 0, :, :] = t.from_numpy(im)
+-                # y[c * aug_size + j][0] = row.malignancy_th
+-                y[c * aug_size + j][0] = row.is_nodule
+-            c += 1
+-        except:
+-            print("Skipping", filename)
+-            pass
++        # filename = f"{row.filename}_{row.coord_x}_{row.coord_y}.png"
++        filename = row.filename
++        for j in range(aug_size):
++            # im = imread(path.join(dir, f'{id:.0f}.{j}.png'))
++            im = imread(path.join(dir, filename))
++            
++            x[c * aug_size + j, 0, :, :] = t.from_numpy(im)
++            # y[c * aug_size + j][0] = row.malignancy_th
++            y[c * aug_size + j][0] = row.is_nodule
++        c += 1
+     print("c = ", c)
+ 
+     x = (x - mu) / sd
+diff --git a/trainer.py b/trainer.py
+index aa3f027..124098a 100644
+--- a/trainer.py
++++ b/trainer.py
+@@ -45,8 +45,12 @@ class Trainer:
+         all_acc = []
+         for data, target in self.dataset:
+             data, target = data.cuda(self.device), target.cuda(self.device)
++            # print("x shape:", data.shape)
++            # print("y shape", target.shape)
+             self.optimizer.zero_grad()
+             output = self.model(data)
++            # print("inner y_pred shape:", output.shape)
++            # print("inner y_true shape", target.shape)
+             acc = self.calc_accuracy(output, target)
+             loss = self.loss(output, target)
+             loss.backward()
+@@ -77,7 +81,7 @@ class Trainer:
+         fpr, tpr, thresholds = metrics.roc_curve(target, pred)
+         auc = metrics.auc(fpr, tpr)
+ 
+-        msg = f'epoch {epoch}: loss {loss:.3f} Tr Acc {tr_dist:.2f} Val Acc {va_dist:.2f} AUC {auc:.2f} duration {duration:.2f}'
++        msg = f'epoch {epoch}: loss {loss:.3f} Tr Acc {tr_dist:.4f} Val Acc {va_dist:.4f} AUC {auc:.4f} duration {duration:.2f}'
+         print(msg)
+         self.log += msg + '\n'
+ 
+@@ -92,11 +96,17 @@ class Trainer:
+                 output = self.model(data)
+             st = batch_idx * self.batch_size
+ 
++            # print("output shape:", output.shape)
++
+             all_pred[st:st + output.shape[0]] = output.cpu().squeeze()
+             all_targets[st:st + output.shape[0]] = target.cpu().squeeze()
++        
++        # print("all_pred shape:", all_pred.shape)
+ 
+-        all_pred = all_pred.view(-1, 3).mean(dim=1)
+-        all_targets = all_targets.view(-1, 3).mean(dim=1)
++        # all_pred = all_pred.view(-1, 3).mean(dim=1)
++        # all_targets = all_targets.view(-1, 3).mean(dim=1)
++        all_pred = all_pred.view(-1, 1).mean(dim=1)
++        all_targets = all_targets.view(-1, 1).mean(dim=1)
+         return all_pred, all_targets
+ 
+ 
+-- 
+2.34.1
+

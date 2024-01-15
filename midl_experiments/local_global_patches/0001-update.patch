@@ -1,0 +1,122 @@
+From 036950ee7fe188108b7ba850ce38409aea7a541c Mon Sep 17 00:00:00 2001
+From: Tom Zhao <zhaoxuan0914@hotmail.com>
+Date: Tue, 28 Mar 2023 19:32:09 +0000
+Subject: [PATCH 1/2] update
+
+---
+ .gitignore       |  2 ++
+ kflod.py         |  4 ++--
+ preprocessing.py | 48 +++++++++++++++++++++++++++++++++++-------------
+ 3 files changed, 39 insertions(+), 15 deletions(-)
+ create mode 100644 .gitignore
+
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..2b42731
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,2 @@
++__pycache__/
++results/
+diff --git a/kflod.py b/kflod.py
+index 1b3f313..36a43a0 100644
+--- a/kflod.py
++++ b/kflod.py
+@@ -44,13 +44,13 @@ def kfold(src_path,
+     i =0
+     f = open(path.join('results', f'{name}.txt'), 'w')
+     f.write(f'{batch_size} {n_epochs} {model_optimizer}\n')
+-    for fold in range(10):
++    for fold in range(1):
+ 
+         reset_rand()
+ 
+         print(f'------------ fold {fold+1} ------------')
+         f.write(f'------------ fold {fold+1} ------------\n')
+-        trset, testset = dataset_func(path.join(src_path,str(fold)))
++        trset, testset = dataset_func(src_path)
+         print(f'Training Size: {len(trset)}, Validation Size: {len(testset)}')
+         trset = DataLoader(trset, batch_size, shuffle=True)
+         testset = DataLoader(testset, batch_size, shuffle=False)
+diff --git a/preprocessing.py b/preprocessing.py
+index b357326..6bc2690 100644
+--- a/preprocessing.py
++++ b/preprocessing.py
+@@ -73,20 +73,33 @@ def generate_dataset(dir):
+ 
+ def get_dataset(dir):
+     df = pd.read_csv(path.join(dir, 'labels.csv'))
+-    df_test = df[df.testing==1]
+-    df_train = df[df.testing == 0]
++    # df_test = df[df.testing==1]
++    # df_train = df[df.testing == 0]
++    l = len(df)
++    
++    df_train = df.iloc[:int(l * 0.8)]
++    df_test = df.iloc[int(l * 0.8):]
++    
++    print("df_train len =", len(df_train))
++    print("df_test len =", len(df_test))
+ 
+     num_data = len(df_train)
+-    aug_size = 18
++    aug_size = 1
+     x = t.zeros((num_data * aug_size, 1, img_size, img_size))
+     y = t.zeros((num_data * aug_size, 1))
+     c = 0
+     for i, row in df_train.iterrows():
+-        id = int(row.id)
++        # id = int(row.id)
++        print(row.coord_x)
++        break
++        filename = f"{row.filename}_{row.coord_x}_{row.coord_y}.png"
++        
+         for j in range(aug_size):
+-            im = imread(path.join(dir,f'{id:.0f}.{j}.png'))
++            # im = imread(path.join(dir,f'{id:.0f}.{j}.png'))
++            im = imread(path.join(dir, filename))
+             x[c * aug_size + j, 0, :, :] = t.from_numpy(im)
+-            y[c * aug_size + j][0] = row.malignancy_th
++            # y[c * aug_size + j][0] = row.malignancy_th
++            y[c * aug_size + j][0] = row.is_nodule
+         c += 1
+ 
+     mu = x.mean()
+@@ -94,18 +107,27 @@ def get_dataset(dir):
+     x = (x - mu) / sd
+ 
+     trainset = TensorDataset(x, y)
+-    aug_size = 3
++    aug_size = 1
+     num_data = len(df_test)
+     x = t.zeros((num_data*aug_size, 1, img_size, img_size))
+     y = t.zeros((num_data*aug_size, 1))
+     c = 0
+     for i, row in df_test.iterrows():
+-        id = int(row.id)
+-        for j in range(aug_size):
+-            im = imread(path.join(dir, f'{id:.0f}.{j}.png'))
+-            x[c * aug_size + j, 0, :, :] = t.from_numpy(im)
+-            y[c * aug_size + j][0] = row.malignancy_th
+-        c += 1
++        # id = int(row.id)
++        filename = f"{row.filename}_{row.coord_x}_{row.coord_y}.png"
++        try:
++            for j in range(aug_size):
++                # im = imread(path.join(dir, f'{id:.0f}.{j}.png'))
++                im = imread(path.join(dir, filename))
++                
++                x[c * aug_size + j, 0, :, :] = t.from_numpy(im)
++                # y[c * aug_size + j][0] = row.malignancy_th
++                y[c * aug_size + j][0] = row.is_nodule
++            c += 1
++        except:
++            print("Skipping", filename)
++            pass
++    print("c = ", c)
+ 
+     x = (x - mu) / sd
+     testset = TensorDataset(x, y)
+-- 
+2.34.1
+
